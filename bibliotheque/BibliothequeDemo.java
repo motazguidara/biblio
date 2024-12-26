@@ -8,33 +8,74 @@ import com.ipsas.bibliotheque.command.*;
 import com.ipsas.bibliotheque.observer.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.ArrayList;
+import java.util.logging.Logger;
+import java.util.logging.Level;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.SimpleFormatter;
 
 public class BibliothequeDemo {
+    private static final Logger LOGGER = Logger.getLogger(BibliothequeDemo.class.getName());
+
+    static {
+        // Configure logger to show all messages
+        ConsoleHandler handler = new ConsoleHandler();
+        handler.setLevel(Level.ALL);
+        handler.setFormatter(new SimpleFormatter());
+        LOGGER.addHandler(handler);
+        LOGGER.setLevel(Level.ALL);
+    }
+
     public static void main(String[] args) {
         // 1. Démonstration du Singleton (Database Connection)
         DatabaseConnection db = DatabaseConnection.getInstance();
-        System.out.println("Connexion à la base de données établie.");
+        LOGGER.info("Connexion à la base de données établie.");
+
+        // Add shutdown hook to properly close database connection
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            db.shutdown();
+            LOGGER.info("Connexion à la base de données fermée.");
+        }));
 
         // 2. Démonstration de la Factory
         OuvrageFactory livrePapierFactory = OuvrageFactory.getFactory(Ouvrage.TypeOuvrage.LIVRE, false);
         Ouvrage livre = livrePapierFactory.createOuvrage();
-        System.out.println("Livre créé avec succès.");
+        LOGGER.info("Livre créé avec succès: " + livre);
 
         // 3. Démonstration de la Strategy (Recherche)
         RechercheStrategy rechercheMonoCritere = new RechercheMono();
         RechercheStrategy rechercheMultiCritere = new RechercheMulti();
 
-        Map<String, Object> criteres = new HashMap<>();
-        criteres.put("motCle", "Java");
+        // Recherche mono-critère
+        Map<String, Object> criteresMono = new HashMap<>();
+        criteresMono.put("motCle", "Le Petit");
+        List<Ouvrage> resultatsMono = rechercheMonoCritere.rechercher(criteresMono);
         
-        System.out.println("Recherche mono-critère:");
-        rechercheMonoCritere.rechercher(criteres);
+        LOGGER.info("Résultats de la recherche mono-critère:");
+        if (resultatsMono.isEmpty()) {
+            LOGGER.warning("Aucun résultat trouvé pour la recherche mono-critère.");
+        } else {
+            for (Ouvrage o : resultatsMono) {
+                LOGGER.info(o.toString());
+            }
+        }
+
+        // Recherche multi-critères
+        Map<String, Object> criteresMulti = new HashMap<>();
+        criteresMulti.put("motCle", "Le Petit");
+        criteresMulti.put("auteur", "Saint-Exupéry");
+        List<Ouvrage> resultatsMulti = rechercheMultiCritere.rechercher(criteresMulti);
         
-        criteres.put("auteur", "Martin Fowler");
-        System.out.println("Recherche multi-critères:");
-        rechercheMultiCritere.rechercher(criteres);
+        LOGGER.info("Résultats de la recherche multi-critères:");
+        if (resultatsMulti.isEmpty()) {
+            LOGGER.warning("Aucun résultat trouvé pour la recherche multi-critères.");
+        } else {
+            for (Ouvrage o : resultatsMulti) {
+                LOGGER.info(o.toString());
+            }
+        }
 
         // 4. Démonstration de l'Observer
         DisponibiliteSubject disponibiliteSubject = new DisponibiliteSubject();
@@ -46,8 +87,8 @@ public class BibliothequeDemo {
         DisponibiliteObserver observerMembre = new DisponibiliteObserver() {
             @Override
             public void notifierDisponibilite(Ouvrage ouvrage) {
-                System.out.println("Notification envoyée à " + membre.getNom() + 
-                                 " : L'ouvrage est maintenant disponible!");
+                LOGGER.info("Notification envoyée à " + membre.getNom() + 
+                            " : L'ouvrage est maintenant disponible! " + ouvrage);
             }
         };
 
@@ -61,12 +102,12 @@ public class BibliothequeDemo {
         
         BibliothequeCommand empruntCommand = new EmpruntCommand(membre, exemplaire);
         empruntCommand.execute();
-        System.out.println("Emprunt effectué.");
+        LOGGER.info("Emprunt effectué.");
 
         BibliothequeCommand retourCommand = new RetourCommand(membre.getEmprunts().get(0));
         retourCommand.execute();
-        System.out.println("Retour effectué.");
+        LOGGER.info("Retour effectué.");
 
-        System.out.println("Démonstration terminée!");
+        LOGGER.info("Démonstration terminée!");
     }
 }

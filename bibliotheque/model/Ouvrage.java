@@ -1,22 +1,30 @@
 package com.ipsas.bibliotheque.model;
 
 import lombok.Data;
-import java.util.List;
-import java.util.Set;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 
 @Data
-public abstract class Ouvrage {
-    private String id;
+@NoArgsConstructor
+@AllArgsConstructor
+public class Ouvrage {
+    private int id;
     private String titre;
-    private List<String> auteurs;
-    private String editeur;
-    private Set<String> motsClefs;
-    private boolean estNumerique;
-    private Type type;
-    
-    public enum Type {
+    private String auteur;
+    private String isbn;
+    private int anneePublication;
+    private boolean disponible;
+
+    // Enum for book types
+    public enum TypeOuvrage {
         LIVRE,
-        REVUE,
-        MAGAZINE
+        MAGAZINE,
+        REVUE
+    }
+
+    @Override
+    public String toString() {
+        return String.format("Livre: %s par %s (ISBN: %s, Année: %d, Disponible: %s)", 
+                             titre, auteur, isbn, anneePublication, disponible ? "Oui" : "Non");
     }
 }
