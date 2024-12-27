@@ -17,67 +17,70 @@ public class RechercheMulti implements RechercheStrategy {
     public List<Ouvrage> rechercher(Map<String, Object> criteres) {
         List<Ouvrage> resultats = new ArrayList<>();
         
-        // Vérifier si des critères sont fournis
         if (criteres == null || criteres.isEmpty()) {
             LOGGER.warning("Aucun critère de recherche fourni.");
             return resultats;
         }
         
-        // Construire dynamiquement la requête SQL
-        StringBuilder queryBuilder = new StringBuilder("SELECT id, titre, auteur, isbn, annee, editeur, disponible FROM ouvrage WHERE 1=1");
+        StringBuilder queryBuilder = new StringBuilder(
+            "SELECT o.id, o.titre, o.isbn, o.annee, e.nom as editeur_nom, " +
+            "GROUP_CONCAT(DISTINCT CONCAT(a.prenom, ' ', a.nom) SEPARATOR ', ') as auteurs, " +
+            "CASE WHEN COUNT(ex.id) > 0 THEN TRUE ELSE FALSE END as disponible " +
+            "FROM ouvrage o " +
+            "LEFT JOIN editeur e ON o.editeur_id = e.id " +
+            "LEFT JOIN ouvrage_auteur oa ON o.id = oa.ouvrage_id " +
+            "LEFT JOIN auteur a ON oa.auteur_id = a.id " +
+            "LEFT JOIN exemplaire ex ON o.id = ex.ouvrage_id AND ex.disponible = TRUE " +
+            "WHERE 1=1"
+        );
+        
         List<Object> params = new ArrayList<>();
         
-        // Ajouter les critères de recherche
         if (criteres.containsKey("titre")) {
-            queryBuilder.append(" AND titre LIKE ?");
-            String titre = (String) criteres.get("titre");
-            params.add("%" + titre + "%");
+            queryBuilder.append(" AND o.titre LIKE ?");
+            params.add("%" + criteres.get("titre") + "%");
         }
         
         if (criteres.containsKey("auteur")) {
-            queryBuilder.append(" AND auteur LIKE ?");
-            String auteur = (String) criteres.get("auteur");
-            params.add("%" + auteur + "%");
+            queryBuilder.append(" AND CONCAT(a.prenom, ' ', a.nom) LIKE ?");
+            params.add("%" + criteres.get("auteur") + "%");
         }
         
         if (criteres.containsKey("editeur")) {
-            queryBuilder.append(" AND editeur LIKE ?");
-            String editeur = (String) criteres.get("editeur");
-            params.add("%" + editeur + "%");
+            queryBuilder.append(" AND e.nom LIKE ?");
+            params.add("%" + criteres.get("editeur") + "%");
         }
+        
+        queryBuilder.append(" GROUP BY o.id, o.titre, o.isbn, o.annee, e.nom");
         
         try (Connection conn = DatabaseConnection.getInstance().getConnection();
              PreparedStatement pstmt = conn.prepareStatement(queryBuilder.toString())) {
             
-            // Définir les paramètres de recherche
             for (int i = 0; i < params.size(); i++) {
                 pstmt.setObject(i + 1, params.get(i));
             }
             
+            LOGGER.info("Executing query: " + queryBuilder.toString());
+            
             try (ResultSet rs = pstmt.executeQuery()) {
-                // Traiter les résultats
                 while (rs.next()) {
                     LivrePapier ouvrage = new LivrePapier();
                     ouvrage.setId(rs.getString("id"));
                     ouvrage.setTitre(rs.getString("titre"));
-                    ouvrage.setAuteur(rs.getString("auteur"));
+                    ouvrage.setAuteur(rs.getString("auteurs"));
                     ouvrage.setIsbn(rs.getString("isbn"));
-                    ouvrage.setEditeur(rs.getString("editeur"));
+                    ouvrage.setEditeur(rs.getString("editeur_nom"));
+                    ouvrage.setAnnee(rs.getInt("annee"));
+                    ouvrage.setDisponible(rs.getBoolean("disponible"));
                     ouvrage.setType(Ouvrage.Type.LIVRE);
                     ouvrage.setEstNumerique(false);
                     
                     resultats.add(ouvrage);
                 }
                 
-                // Journaliser le nombre de résultats
                 LOGGER.info("Recherche multi-critères terminée. Nombre de résultats : " + resultats.size());
-            } catch (SQLException e) {
-                // Journaliser les erreurs liées à l'exécution de la requête
-                LOGGER.log(Level.SEVERE, "Erreur lors de l'exécution de la requête de recherche", e);
             }
-            
         } catch (SQLException e) {
-            // Journaliser l'erreur de connexion ou de préparation de la requête
             LOGGER.log(Level.SEVERE, "Erreur lors de la recherche multi-critères", e);
         }
         

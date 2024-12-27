@@ -6,6 +6,7 @@ com/ipsas/bibliotheque/model/Membre.class
 com/ipsas/bibliotheque/factory/RevueNumeriqueFactory.class
 com/ipsas/bibliotheque/command/Command.class
 com/ipsas/bibliotheque/model/MagazinePapier.class
+com/ipsas/bibliotheque/service/ReservationService.class
 com/ipsas/bibliotheque/model/Exemplaire.class
 com/ipsas/bibliotheque/model/RevuePapier.class
 com/ipsas/bibliotheque/strategy/RechercheMulti.class
@@ -14,15 +15,19 @@ com/ipsas/bibliotheque/dao/ExemplaireDAO.class
 com/ipsas/bibliotheque/factory/LivreNumeriqueFactory.class
 com/ipsas/bibliotheque/model/LivreNumerique.class
 com/ipsas/bibliotheque/model/Emprunt.class
+com/ipsas/bibliotheque/model/Reservation$StatutReservation.class
 com/ipsas/bibliotheque/model/LivrePapier.class
 com/ipsas/bibliotheque/BibliothequeDemo.class
 com/ipsas/bibliotheque/command/BibliothequeCommand.class
 com/ipsas/bibliotheque/factory/LivrePapierFactory.class
 com/ipsas/bibliotheque/db/DatabaseConnection.class
 com/ipsas/bibliotheque/model/Exemplaire$Etat.class
+com/ipsas/bibliotheque/service/NotificationService$1.class
 com/ipsas/bibliotheque/factory/MagazinePapierFactory.class
 com/ipsas/bibliotheque/command/EmpruntCommand.class
 com/ipsas/bibliotheque/dao/EmpruntDAO.class
+com/ipsas/bibliotheque/model/Reservation.class
+com/ipsas/bibliotheque/service/NotificationService.class
 com/ipsas/bibliotheque/DatabaseQueryTest.class
 com/ipsas/bibliotheque/model/Emprunt$StatutEmprunt.class
 com/ipsas/bibliotheque/strategy/RechercheMono.class
@@ -32,7 +37,7 @@ com/ipsas/bibliotheque/observer/DisponibiliteSubject.class
 com/ipsas/bibliotheque/observer/DisponibiliteObserver.class
 com/ipsas/bibliotheque/model/RevueNumerique.class
 com/ipsas/bibliotheque/command/RetourCommand.class
-com/ipsas/bibliotheque/BibliothequeDemo$1.class
+com/ipsas/bibliotheque/service/EmpruntService.class
 com/ipsas/bibliotheque/model/Ouvrage$Type.class
 com/ipsas/bibliotheque/TestDatabase.class
 com/ipsas/bibliotheque/dao/MembreDAO.class
